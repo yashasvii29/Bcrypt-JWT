@@ -35,25 +35,36 @@ router.post('/register',async (req, res) => {
 router.post('/login',async(req,res)=>{
     let userFormData = req.body;
     console.log(userFormData);
-
-    let userDBInfo = await  User.findOne({email:userFormData.email});
+    let userDBInfo;
+    try{
+         userDBInfo = await User.findOne({email:userFormData.email});
+        //  userDBInfo m uss particular user ka data aa jayega jiska email hum User ke database m find kr rhe hai
+    }
+    catch(err){
+        return res.send("login issue");
+    }
 
     if(!userDBInfo){
         return res.send('account has been not created');
     }
     let validatePassword = await bcrypt.compare(userFormData.password,userDBInfo.password);
+    // login wale password ko compare kr he hai register wale password se
+    // compare will return boolean value
     if(!validatePassword){
         return res.send("Incorrect password");
     }
+    // jwt is a npm package so we need to install it
     // password valid hai...so we will create token for authenticity using jwt(json web token)..it is used to generate the token
+    // token is like a id card which identify the user(user ki details) means login krne ke baad token generate krnge isse user website ya app ki kisi bhi functionality ko access kr sakta hai use dusri functionality ko use krne ke liye  again and again login krne ki need nhi hai....means 1 page se durse page pr jane ke liye again login krne ki need nhi hai token ki help se user can access all the functionalities of the website or appliucation
     const token = generateAuthToken(userDBInfo); // token ko generate kr rhe hai using jwt
+    // generateAuthToken is a function which return token
     console.log(token);
     res.send({
         data:{
             token:token,
-            userDbInfo:userDbInfo
+            userDBInfo:userDBInfo
         },
-        msg:"user loggedin"
+        msg:"Everything is fine,user loggedin"
         // logged in user ka(means jis user ne log in kiya hai) uska sara data res m send kr rhe hai 
     })
 })
